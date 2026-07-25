@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tripledger · Every Choice, With Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================
+       TRIPLEDGER — sticker-board theme
+       Palette: cream paper #FFF8EC · ink #232333
+       Fixed decorative "stickers": sunshine / bubblegum / sky / grape / mint
+       --accent / --accent-light / --accent-dark / --on-accent are
+       computed live by JS from whatever color the person picks.
+    ========================================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100vh; overflow-x: hidden; }
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    :root {
+      --paper: #FFF8EC;
+      --paper-card: #FFFFFF;
+      --ink: #232333;
+      --muted: #8A8798;
+      --line: rgba(35,35,51,0.08);
+
+      --sunshine: #FFC24B;
+      --bubblegum: #FF6FA8;
+      --sky: #33C2E0;
+      --grape: #8B6BFF;
+      --mint: #3ECF8E;
+      --coral: #FF6B5B;
+
+      /* live-computed, defaults below match --grape */
+      --accent: #8B6BFF;
+      --accent-light: #EFE9FF;
+      --accent-dark: #6E4FE0;
+      --on-accent: #FFFFFF;
+    }
+    .display { font-family: 'Baloo 2', 'Poppins', sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+
+    /* ---------- sticker-board backdrop ---------- */
+    .board-blobs { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+    .blob {
+      position: absolute; border-radius: 44% 56% 62% 38% / 48% 42% 58% 52%;
+      filter: blur(2px); opacity: 0.35;
+      animation: blobDrift 14s ease-in-out infinite alternate;
+    }
+    .blob.b1 { width: 340px; height: 340px; top: -80px; left: -100px; background: var(--sunshine); animation-delay: 0s; }
+    .blob.b2 { width: 260px; height: 260px; top: 10%; right: -90px; background: var(--sky); animation-delay: -4s; }
+    .blob.b3 { width: 300px; height: 300px; bottom: -100px; left: 8%; background: var(--bubblegum); animation-delay: -8s; opacity: 0.28; }
+    .blob.b4 { width: 220px; height: 220px; bottom: 12%; right: 6%; background: var(--mint); animation-delay: -2s; opacity: 0.25; }
+    @keyframes blobDrift {
+      0% { transform: translate(0,0) rotate(0deg) scale(1); }
+      50% { transform: translate(24px,-30px) rotate(8deg) scale(1.06); }
+      100% { transform: translate(-18px,20px) rotate(-6deg) scale(0.97); }
+    }
+    @media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
+
+    /* ---------- shared bits ---------- */
+    .sticker-card {
+      background: var(--paper-card);
+      border-radius: 26px;
+      border: 2.5px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+    .tape {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+      width: 88px; height: 26px; border-radius: 4px;
+      background: repeating-linear-gradient(45deg, var(--accent-light), var(--accent-light) 6px, var(--accent) 6px, var(--accent) 7px);
+      opacity: 0.9; box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .btn-primary {
+      background: var(--accent); color: var(--on-accent);
+      padding: 13px 24px; border-radius: 14px; border: 2.5px solid var(--ink);
+      font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 15px;
+      cursor: pointer; box-shadow: 4px 4px 0 var(--ink);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    .btn-primary:active:not(:disabled) { transform: translate(0,0); box-shadow: 2px 2px 0 var(--ink); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent; color: var(--ink); padding: 10px 18px;
+      border-radius: 12px; border: 2px solid var(--ink); font-weight: 600;
+      cursor: pointer; transition: background 0.15s ease;
+    }
+    .btn-ghost:hover { background: var(--line); }
+    .btn-text { background: none; border: none; color: var(--accent-dark); cursor: pointer; text-decoration: underline; font-weight: 600; font-family: 'Poppins', sans-serif; }
+    .input, .select {
+      background: #FBF9F4; border: 2px solid var(--line); color: var(--ink);
+      padding: 12px 14px; border-radius: 12px; width: 100%;
+      font-family: 'Poppins', sans-serif; font-size: 14px; outline: none;
+      transition: border 0.15s ease;
+    }
+    .input:focus, .select:focus { border-color: var(--accent); }
+    .panel-title {
+      font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px;
+      letter-spacing: 0.02em; color: var(--ink); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .panel { background: var(--paper-card); border-radius: 20px; padding: 20px; border: 2px solid var(--line); }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 999px;
+      background: #FBF9F4; border: 2px solid var(--line);
+      color: var(--ink); font-size: 13px; font-weight: 600;
+      cursor: pointer; user-select: none; transition: all 0.15s ease;
+    }
+    .chip.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+    .chip.readonly { cursor: default; }
+    .you-badge {
+      display: inline-block; background: var(--accent); color: var(--on-accent);
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      letter-spacing: 0.06em; margin-left: 6px; vertical-align: middle;
+    }
+    .form-msg { font-size: 13px; margin-top: 8px; min-height: 18px; font-weight: 500; }
+    .form-msg.error { color: var(--coral); }
+    .form-msg.success { color: #1F9C6B; }
+
+    /* ---------- welcome screen ---------- */
+    #welcomeScreen {
+      position: relative; width: 100vw; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 20px 120px;
+    }
+    .logo-stage { position: relative; z-index: 2; text-align: center; margin-bottom: 8px; animation: floatY 5s ease-in-out infinite; }
+    @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .logo-mark-wrapper { position: relative; display: inline-block; width: clamp(150px, 26vw, 230px); }
+    .logo-mark-img { width: 100%; height: auto; display: block; border-radius: 28px; }
+    .brand-title { font-size: clamp(30px, 5vw, 46px); font-weight: 800; margin-top: 18px; }
+    .brand-title .accent-word { color: var(--accent-dark); }
+    .tagline { margin-top: 6px; font-weight: 500; color: var(--muted); font-size: 15px; letter-spacing: 0.02em; }
+    .maker-badge {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+      padding: 6px 16px; border-radius: 999px; background: var(--paper-card);
+      border: 2px solid var(--ink); font-size: 12px; font-weight: 700;
+    }
+
+    .login-card {
+      position: relative; z-index: 2; width: min(400px, 92vw);
+      margin-top: 34px; padding: 30px 26px 24px; text-align: center;
+    }
+    .login-card .label { font-family: 'Baloo 2', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .login-card input { margin-bottom: 12px; }
+    .otp-display { background: var(--accent-light); border: 2px dashed var(--accent); border-radius: 14px; padding: 12px; text-align: center; color: var(--accent-dark); font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 4px; margin: 10px 0; }
+    .login-card .sub { font-size: 12px; color: var(--muted); margin-top: 14px; }
+
+    /* ---------- mascots: boy + girl + dog "bring in" the login card ----------
+       Clothing/collar fills use the live theme vars, so they always match
+       whatever accent colour the person has picked. Skin/hair/fur stay
+       fixed neutral tones so the characters read the same in every theme. */
+    .mascot { position: absolute; z-index: 3; pointer-events: none; }
+    .mascot-boy {
+      width: 62px; bottom: -8px; left: -34px;
+      animation: mascotInLeft 0.7s cubic-bezier(.34,1.56,.64,1) both;
+      animation-delay: 0.05s;
+    }
+    .mascot-girl {
+      width: 62px; bottom: -8px; right: -34px;
+      animation: mascotInRight 0.7s cubic-bezier(.34,1.56,.64,1) both;
+      animation-delay: 0.2s;
+    }
+    .mascot-dog {
+      width: 78px; bottom: -26px; left: 50%;
+      animation: mascotInUp 0.6s cubic-bezier(.34,1.56,.64,1) both;
+      animation-delay: 0.4s;
+    }
+    .mascot-boy .wave-arm { transform-origin: 50px 46px; animation: wave 2.2s ease-in-out 0.9s infinite; }
+    .mascot-girl .wave-arm { transform-origin: 20px 46px; animation: wave 2.2s ease-in-out 1.05s infinite; }
+    .mascot-dog .tail { transform-origin: 8px 40px; animation: tailWag 0.5s ease-in-out 1s infinite; }
+    @keyframes mascotInLeft {
+      0% { transform: translateX(-70px) rotate(-8deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+    @keyframes mascotInRight {
+      0% { transform: translateX(70px) rotate(8deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+    @keyframes mascotInUp {
+      0% { transform: translateX(-50%) translateY(30px) scale(0.7); opacity: 0; }
+      100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-22deg); } 50% { transform: rotate(-6deg); } 75% { transform: rotate(-22deg); } }
+    @keyframes tailWag { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(18deg); } }
+    @media (max-width: 460px) {
+      .mascot-boy, .mascot-girl { width: 46px; }
+      .mascot-dog { width: 58px; bottom: -20px; }
+      .mascot-boy { left: -20px; } .mascot-girl { right: -20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mascot-boy, .mascot-girl, .mascot-dog { animation: none; opacity: 1; }
+      .mascot-boy { transform: none; } .mascot-girl { transform: none; }
+      .mascot-dog { transform: translateX(-50%); }
+      .wave-arm, .tail { animation: none !important; }
+    }
+
+    /* theme picker widget */
+    #themeToggle {
+      position: fixed; bottom: 22px; right: 22px; z-index: 50;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--accent); border: 2.5px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink); font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.15s ease;
+    }
+    #themeToggle:hover { transform: rotate(-8deg) scale(1.06); }
+    #themePanel {
+      position: fixed; bottom: 90px; right: 22px; z-index: 50;
+      width: 240px; padding: 18px; display: none;
+      background: var(--paper-card); border-radius: 20px;
+      border: 2.5px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+    }
+    #themePanel.open { display: block; animation: popIn 0.18s ease-out; }
+    @keyframes popIn { from { opacity:0; transform: translateY(8px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    #themePanel .theme-title { font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; margin-bottom:10px; }
+    .swatch-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .swatch {
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      border: 2px solid var(--ink); transition: transform 0.12s ease;
+    }
+    .swatch:hover { transform: scale(1.14); }
+    .swatch.active { box-shadow: 0 0 0 3px var(--paper-card), 0 0 0 5px var(--ink); }
+    .custom-color-row { display:flex; align-items:center; gap:10px; }
+    #customColorInput { width: 40px; height: 40px; padding: 0; border: 2px solid var(--ink); border-radius: 10px; cursor: pointer; background: none; }
+    #themePanel .hint { font-size: 11px; color: var(--muted); margin-top: 10px; line-height:1.4; }
+
+    /* ---------- dashboard ---------- */
+    .app-container { max-width: 980px; margin: 0 auto; padding: 26px 18px 90px; position: relative; z-index: 1; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+    .stat-card { flex: 1; min-width: 140px; text-align: center; }
+    .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 700; margin-top: 4px; }
+    .trip-card { cursor: pointer; padding: 16px 18px; transition: transform 0.12s ease; }
+    .trip-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    .code-pill {
+      display: inline-block; padding: 4px 12px; border-radius: 999px;
+      background: var(--accent-light); color: var(--accent-dark);
+      font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 12px; letter-spacing: 0.08em;
+    }
+    .receipt {
+      background: #FFFCF3; color: var(--ink);
+      border-radius: 20px 20px 0 0; padding: 18px 18px 8px 18px;
+      border: 2px solid var(--ink); border-bottom: none;
+    }
+    .receipt-zigzag {
+      height: 14px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink);
+      background:
+        linear-gradient(135deg, #FFFCF3 6px, transparent 0) 0 6px,
+        linear-gradient(225deg, #FFFCF3 6px, transparent 0) 0 6px;
+      background-repeat: repeat-x; background-size: 12px 12px;
+    }
+    .sync-dot { display:inline-block; width:8px; height:8px; background: var(--mint); border-radius:999px; margin-right:6px; animation: pulse 2.2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+    .tab-btn { padding: 9px 18px; border-radius: 999px; border: 2px solid var(--ink); font-weight: 700; cursor: pointer; background: transparent; color: var(--ink); font-family:'Poppins',sans-serif; }
+    .tab-btn.active { background: var(--accent); color: var(--on-accent); }
+
+    #printArea { display: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { display: block !important; position: absolute; left:0; top:0; width:100%; background:#fff; color:#111; font-family:'Poppins',Arial,sans-serif; padding:40px; }
+      #printArea table { width:100%; border-collapse: collapse; margin-bottom:24px; }
+      #printArea th, #printArea td { text-align:left; padding:8px 6px; border-bottom:1px solid #ddd; font-size:13px; }
+      #printArea th { font-weight:600; border-bottom:2px solid #333; }
+      .print-section-title { font-weight:600; font-size:14px; text-transform: uppercase; letter-spacing:0.1em; border-bottom:1px solid #999; padding-bottom:6px; margin:24px 0 12px 0; color:#111; }
+      .print-header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #111; padding-bottom:12px; margin-bottom:20px; }
+      .print-footer { margin-top:30px; padding-top:10px; border-top:1px solid #ccc; color:#666; font-size:11px; text-align:center; }
+    }
+
+    /* ---------- segmented OTP boxes ---------- */
+    .otp-boxes { display: flex; justify-content: center; gap: 8px; margin: 6px 0 4px; }
+    .otp-box {
+      width: 46px; height: 56px; border-radius: 14px;
+      border: 2.5px solid var(--box-color, var(--ink));
+      background: #FBF9F4; color: var(--ink);
+      font-family: 'Baloo 2', sans-serif; font-size: 24px; font-weight: 700;
+      text-align: center; outline: none; caret-color: var(--box-color, var(--accent));
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      -moz-appearance: textfield;
+    }
+    .otp-box::-webkit-outer-spin-button, .otp-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .otp-box:focus { box-shadow: 3px 3px 0 var(--box-color, var(--ink)), 0 0 12px color-mix(in srgb, var(--box-color, var(--accent)) 55%, transparent); transform: translate(-1px,-1px); }
+    .otp-box.filled { background: color-mix(in srgb, var(--box-color, var(--accent)) 14%, #FBF9F4); animation: otpPop 0.22s ease; box-shadow: 0 0 0 3px color-mix(in srgb, var(--box-color, var(--accent)) 30%, transparent), 0 0 16px color-mix(in srgb, var(--box-color, var(--accent)) 60%, transparent); }
+    .otp-box.shake { animation: otpShake 0.32s ease; border-color: var(--coral) !important; box-shadow: 0 0 16px color-mix(in srgb, var(--coral) 60%, transparent) !important; }
+    @keyframes otpPop { 0% { transform: scale(0.85); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+    @keyframes otpShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .otp-status { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 22px; margin-top: 4px; font-size: 13px; font-weight: 600; }
+    .otp-status.verifying { color: var(--muted); }
+    .otp-status.verified { color: #1F9C6B; }
+    .otp-status.failed { color: var(--coral); }
+    .otp-check {
+      width: 20px; height: 20px; border-radius: 50%; background: #1F9C6B;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 12px; font-weight: 900;
+      animation: checkPop 0.3s ease;
+    }
+    @keyframes checkPop { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .otp-spinner {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--line); border-top-color: var(--accent);
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- radar-style "Verified & Secured" burst ----------
+       Outer ping + radiating ticks use the live theme accent (colour-depend);
+       the core stays success-green so the meaning is always unambiguous. */
+    .otp-verified-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0 2px; animation: verifiedFadeIn 0.25s ease both; }
+    @keyframes verifiedFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .otp-ring { position: relative; width: 92px; height: 92px; }
+    .otp-ring-ping {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 3px solid var(--accent);
+      animation: ringPing 1.1s ease-out 2;
+    }
+    .otp-ring-ping.ping2 { animation-delay: 0.35s; }
+    @keyframes ringPing {
+      0% { transform: scale(0.55); opacity: 0.85; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+    .otp-tick-slot { position: absolute; top: 50%; left: 50%; width: 0; height: 0; }
+    .otp-tick {
+      position: absolute; left: -2px; top: -42px; width: 4px; height: 9px; border-radius: 2px;
+      background: var(--accent); opacity: 0; transform: scale(0.4);
+      animation: tickLight 0.35s ease forwards;
+    }
+    @keyframes tickLight { to { opacity: 1; transform: scale(1); } }
+    .otp-ring-core {
+      position: absolute; inset: 16px; border-radius: 50%; background: #1F9C6B;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 26px; font-weight: 900;
+      box-shadow: 0 0 0 5px color-mix(in srgb, #1F9C6B 16%, transparent);
+      animation: coreIn 0.4s cubic-bezier(.34,1.56,.64,1) 0.55s both;
+    }
+    @keyframes coreIn { 0% { transform: scale(0); } 65% { transform: scale(1.18); } 100% { transform: scale(1); } }
+    .otp-verified-text { color: #1F9C6B; font-weight: 700; font-size: 14px; }
+
+    /* =========================================================
+       "8D" DEPTH LAYER — tilt-on-hover cards, glare sheen,
+       staggered 3D entrances, and a manual-refresh burst.
+       No timers here — everything fires from real user gestures.
+    ========================================================= */
+    .app-container, #welcomeScreen { perspective: 1400px; }
+    .tilt-card {
+      position: relative; transform-style: preserve-3d;
+      transition: transform 0.15s cubic-bezier(.22,1,.36,1), box-shadow 0.15s ease;
+      will-change: transform;
+    }
+    .tilt-card .tilt-glare {
+      position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: radial-gradient(circle at var(--glare-x,50%) var(--glare-y,50%), rgba(255,255,255,0.45), transparent 55%);
+      opacity: 0; transition: opacity 0.25s ease; mix-blend-mode: overlay; z-index: 2;
+    }
+    .tilt-card:hover .tilt-glare, .tilt-card:focus-within .tilt-glare { opacity: 1; }
+    .tilt-card > * { transform: translateZ(0); }
+
+    @keyframes cardIn3D {
+      0% { opacity: 0; transform: perspective(900px) rotateX(14deg) translateY(22px) scale(0.94); }
+      60% { opacity: 1; }
+      100% { opacity: 1; transform: perspective(900px) rotateX(0deg) translateY(0) scale(1); }
+    }
+    .card-in { animation: cardIn3D 0.55s cubic-bezier(.22,1,.36,1) both; }
+    @media (prefers-reduced-motion: reduce) {
+      .card-in { animation: none; }
+      .tilt-card { transition: none; }
+    }
+
+    /* manual "pull to refresh" style burst — plays only on click, never on a timer */
+    .refresh-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+    .refresh-icon { display: inline-block; transform-origin: center; transition: transform 0.55s cubic-bezier(.34,1.75,.64,1); }
+    .refresh-icon.spin { transform: rotate(360deg) scale(1.15); }
+    .refresh-burst {
+      position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
+      border-radius: 50%; border: 2px solid var(--accent); pointer-events: none;
+      animation: refreshPing 0.65s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .refresh-burst.b2 { border-color: var(--sky); animation-delay: 0.06s; }
+    .refresh-burst.b3 { border-color: var(--bubblegum); animation-delay: 0.12s; }
+    @keyframes refreshPing {
+      0% { transform: scale(1); opacity: 0.9; }
+      100% { transform: scale(9); opacity: 0; }
+    }
+    .sync-status-live { display: inline-flex; align-items: center; gap: 6px; }
+    .sync-dot.manual { background: var(--accent); animation: none; }
+
+    /* subtle idle float for stat cards, purely decorative, no data implications */
+    @keyframes floatSoft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .stat-card.tilt-card { animation: floatSoft 4.5s ease-in-out infinite; }
+    .stat-card.tilt-card:nth-child(2) { animation-delay: -1.5s; }
+    .stat-card.tilt-card:nth-child(3) { animation-delay: -3s; }
+    @media (prefers-reduced-motion: reduce) { .stat-card.tilt-card { animation: none; } }
+
+    /* ---------- welcome info notice: how-to / maker / solution / brain ---------- */
+    .info-notice { padding: 20px 22px 22px; margin-bottom: 26px; }
+    .info-notice-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .info-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px;
+      max-height: 600px; overflow: hidden; opacity: 1;
+      transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.35s ease;
+    }
+    .info-notice.info-collapsed .info-grid { max-height: 0; opacity: 0; margin: 0; pointer-events: none; }
+    .info-card {
+      background: var(--accent-light); border: 2px solid var(--line); border-radius: 18px;
+      padding: 16px 16px 14px; overflow: hidden;
+    }
+    .info-emoji { font-size: 26px; line-height: 1; margin-bottom: 8px; }
+    .info-title { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px; margin-bottom: 6px; color: var(--accent-dark); }
+    .info-text { font-size: 12.5px; color: var(--ink); opacity: 0.85; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div class="board-blobs">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+  </div>
+
+  <!-- floating theme customizer -->
+  <button id="themeToggle" title="Pick your colours" aria-label="Pick your colours">🎨</button>
+  <div id="themePanel">
+    <div class="theme-title">Pick your vibe</div>
+    <div class="swatch-row" id="swatchRow"></div>
+    <div class="custom-color-row">
+      <input type="color" id="customColorInput" value="#8B6BFF" />
+      <span style="font-size:12px;color:var(--muted);">or make your own</span>
+    </div>
+    <div class="hint">Your colour, your rules — text always stays easy to read, whatever you pick.</div>
+  </div>
+
+  <div id="app">
+    <!-- WELCOME SCREEN -->
+    <div id="welcomeScreen">
+      <div class="logo-stage">
+        <div class="logo-mark-wrapper" id="logoMarkWrapper">
+          <img class="logo-mark-img" id="draLogoImg" src="dra-logo-transparent.png" alt="Tripledger logo" />
+        </div>
+        <div class="brand-title display">Trip<span class="accent-word">ledger</span></div>
+        <div class="tagline">Every choice, with care — split trip costs without the awkward maths.</div>
+        <div class="maker-badge">✦ Divyam Rajan Agrawal ✦</div>
+      </div>
+
+      <div class="login-card sticker-card tilt-card card-in" id="loginCard">
+        <div class="tape"></div>
+        <div class="label" id="loginLabel">Welcome back 👋</div>
+        <div id="stepMobile">
+          <input type="email" id="emailInput" class="input" placeholder="Enter your email address" maxlength="80" />
+          <button class="btn-primary" id="sendOtpBtn" style="width:100%;">Send OTP</button>
+          <div id="mobileMsg" class="form-msg"></div>
+        </div>
+        <div id="stepOtp" style="display:none;">
+          <button class="btn-text" id="backToMobile" style="margin-bottom:12px;">←  Back</button>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Let's verify your email</div>
+          <div class="otp-boxes" id="otpBoxes"></div>
+          <div class="otp-status" id="otpStatus"></div>
+          <div class="otp-verified-wrap" id="otpVerifiedWrap" style="display:none;">
+            <div class="otp-ring" id="otpRing"></div>
+            <div class="otp-verified-text">Verified &amp; Secured 🔒</div>
+          </div>
+          <div style="margin-top:10px;font-size:13px;color:var(--muted);">
+            Didn't receive? <button id="resendOtpBtn" class="btn-text">Resend OTP</button>
+          </div>
+          <div id="otpMsg" class="form-msg"></div>
+        </div>
+        <div class="sub">Secure · Free · No hidden charges</div>
+
+        <!-- Boy mascot — shirt colour follows the live theme accent -->
+        <svg class="mascot mascot-boy" viewBox="0 0 70 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="35" cy="96" rx="20" ry="4" fill="rgba(35,35,51,0.15)"/>
+          <rect x="24" y="64" width="9" height="26" rx="4" fill="#3A3A4D" stroke="#232333" stroke-width="2.5"/>
+          <rect x="37" y="64" width="9" height="26" rx="4" fill="#3A3A4D" stroke="#232333" stroke-width="2.5"/>
+          <rect x="22" y="86" width="12" height="7" rx="3.5" fill="#232333"/>
+          <rect x="35" y="86" width="12" height="7" rx="3.5" fill="#232333"/>
+          <rect x="12" y="42" width="10" height="25" rx="5" fill="var(--accent)" stroke="#232333" stroke-width="2.5"/>
+          <rect x="17" y="36" width="36" height="34" rx="15" fill="var(--accent)" stroke="#232333" stroke-width="2.5"/>
+          <g class="wave-arm">
+            <rect x="46" y="20" width="10" height="26" rx="5" fill="var(--accent)" stroke="#232333" stroke-width="2.5"/>
+            <circle cx="51" cy="18" r="6" fill="#FFD9B3" stroke="#232333" stroke-width="2.2"/>
+          </g>
+          <rect x="29" y="28" width="12" height="10" fill="#FFD9B3"/>
+          <circle cx="35" cy="20" r="16" fill="#FFD9B3" stroke="#232333" stroke-width="2.8"/>
+          <path d="M19 16 Q22 2 35 3 Q49 2 51 16 Q42 9 35 10 Q27 9 19 16 Z" fill="#3B2A20" stroke="#232333" stroke-width="2"/>
+          <circle cx="30" cy="21" r="1.7" fill="#232333"/>
+          <circle cx="40" cy="21" r="1.7" fill="#232333"/>
+          <path d="M30 26 Q35 29 40 26" stroke="#232333" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Girl mascot — dress colour follows the live theme accent -->
+        <svg class="mascot mascot-girl" viewBox="0 0 70 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="35" cy="96" rx="20" ry="4" fill="rgba(35,35,51,0.15)"/>
+          <rect x="24" y="66" width="9" height="24" rx="4" fill="#3A3A4D" stroke="#232333" stroke-width="2.5"/>
+          <rect x="37" y="66" width="9" height="24" rx="4" fill="#3A3A4D" stroke="#232333" stroke-width="2.5"/>
+          <rect x="22" y="86" width="12" height="7" rx="3.5" fill="#232333"/>
+          <rect x="35" y="86" width="12" height="7" rx="3.5" fill="#232333"/>
+          <path d="M35 36 L52 68 Q35 78 18 68 Z" fill="var(--accent-dark)" stroke="#232333" stroke-width="2.5"/>
+          <g class="wave-arm">
+            <rect x="14" y="20" width="10" height="26" rx="5" fill="var(--accent-dark)" stroke="#232333" stroke-width="2.5"/>
+            <circle cx="19" cy="18" r="6" fill="#FFD9B3" stroke="#232333" stroke-width="2.2"/>
+          </g>
+          <rect x="48" y="42" width="10" height="25" rx="5" fill="var(--accent-dark)" stroke="#232333" stroke-width="2.5"/>
+          <rect x="29" y="28" width="12" height="10" fill="#FFD9B3"/>
+          <circle cx="35" cy="20" r="16" fill="#FFD9B3" stroke="#232333" stroke-width="2.8"/>
+          <circle cx="16" cy="27" r="7" fill="#4A2E1D" stroke="#232333" stroke-width="2"/>
+          <circle cx="54" cy="27" r="7" fill="#4A2E1D" stroke="#232333" stroke-width="2"/>
+          <rect x="12" y="20" width="8" height="6" rx="3" fill="var(--accent-light)"/>
+          <rect x="50" y="20" width="8" height="6" rx="3" fill="var(--accent-light)"/>
+          <path d="M19 15 Q22 2 35 3 Q48 2 51 15 Q42 8 35 9 Q28 8 19 15 Z" fill="#4A2E1D" stroke="#232333" stroke-width="2"/>
+          <circle cx="30" cy="21" r="1.7" fill="#232333"/>
+          <circle cx="40" cy="21" r="1.7" fill="#232333"/>
+          <path d="M30 26 Q35 29 40 26" stroke="#232333" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Dog mascot — collar colour follows the live theme accent -->
+        <svg class="mascot mascot-dog" viewBox="0 0 90 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="45" cy="56" rx="26" ry="4" fill="rgba(35,35,51,0.15)"/>
+          <path class="tail" d="M14 40 Q2 32 6 20" stroke="#C9946A" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="38" rx="24" ry="16" fill="#E3B98A" stroke="#232333" stroke-width="2.8"/>
+          <ellipse cx="45" cy="46" rx="17" ry="6" fill="#F3DAB8"/>
+          <rect x="30" y="44" width="30" height="6" rx="3" fill="var(--accent)" stroke="#232333" stroke-width="2"/>
+          <circle cx="66" cy="27" r="14" fill="#E3B98A" stroke="#232333" stroke-width="2.8"/>
+          <path d="M56 17 Q52 5 61 10 Q59 18 56 17 Z" fill="#C9946A" stroke="#232333" stroke-width="2"/>
+          <path d="M76 17 Q82 6 85 13 Q80 20 76 17 Z" fill="#C9946A" stroke="#232333" stroke-width="2"/>
+          <circle cx="61" cy="25" r="1.8" fill="#232333"/>
+          <circle cx="71" cy="25" r="1.8" fill="#232333"/>
+          <ellipse cx="66" cy="32" rx="4" ry="3" fill="#232333"/>
+          <path d="M66 35 Q66 40 70 40" stroke="#232333" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M63 40 Q66 46 69 40" fill="#FF8E9E" stroke="#232333" stroke-width="1.6"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardScreen" style="display:none;">
+      <div class="app-container" id="dashboardContent"></div>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+
+  <script>
+    // ===================== THEME ENGINE =====================
+    const THEME_KEY = 'tripledger-accent';
+    // Persistent login session — set on successful OTP verify, cleared only
+    // when the user explicitly clicks "Sign out". No expiry, no timers.
+    const SESSION_KEY = 'tripledger-session-email';
+    const PRESET_COLORS = ['#8B6BFF', '#FF6FA8', '#33C2E0', '#FFC24B', '#3ECF8E', '#FF6B5B', '#4C6EF5'];
+    // Colours for the 6 OTP boxes — reuses the app's own sticker palette so it
+    // always matches the theme, one distinct colour per digit position.
+    const OTP_BOX_COLORS = ['#FFC24B', '#FF6FA8', '#33C2E0', '#8B6BFF', '#3ECF8E', '#FF6B5B'];
+
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      const n = parseInt(hex, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+    }
+    function rgbToHsl(r, g, b) {
+      r/=255; g/=255; b/=255;
+      const max=Math.max(r,g,b), min=Math.min(r,g,b);
+      let h,s,l=(max+min)/2;
+      if (max===min){ h=s=0; } else {
+        const d=max-min; s = l>0.5 ? d/(2-max-min) : d/(max+min);
+        switch(max){ case r: h=(g-b)/d+(g<b?6:0); break; case g: h=(b-r)/d+2; break; default: h=(r-g)/d+4; }
+        h/=6;
+      }
+      return { h: h*360, s: s*100, l: l*100 };
+    }
+    function hslToRgb(h, s, l) {
+      h/=360; s/=100; l/=100;
+      if (s===0) { const v=l*255; return { r:v, g:v, b:v }; }
+      const q = l<0.5 ? l*(1+s) : l+s-l*s;
+      const p = 2*l-q;
+      const hue2rgb = (p,q,t) => { if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+      return { r: hue2rgb(p,q,h+1/3)*255, g: hue2rgb(p,q,h)*255, b: hue2rgb(p,q,h-1/3)*255 };
+    }
+    function relLuminance(r, g, b) {
+      const chan = c => { c/=255; return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); };
+      return 0.2126*chan(r) + 0.7152*chan(g) + 0.0722*chan(b);
+    }
+    function pickOnColor(hex) {
+      const {r,g,b} = hexToRgb(hex);
+      return relLuminance(r,g,b) > 0.5 ? '#232333' : '#FFFFFF';
+    }
+    function shade(hex, lDelta, sDelta) {
+      const {r,g,b} = hexToRgb(hex);
+      const hsl = rgbToHsl(r,g,b);
+      const newL = Math.max(4, Math.min(96, hsl.l + lDelta));
+      const newS = Math.max(0, Math.min(100, hsl.s + (sDelta||0)));
+      const rgb = hslToRgb(hsl.h, newS, newL);
+      return rgbToHex(rgb.r, rgb.g, rgb.b);
+    }
+    function applyAccent(hex, save) {
+      const root = document.documentElement.style;
+      const onAccent = pickOnColor(hex);
+      const light = shade(hex, 38, -10);
+      const dark = shade(hex, -14, 5);
+      root.setProperty('--accent', hex);
+      root.setProperty('--on-accent', onAccent);
+      root.setProperty('--accent-light', light);
+      root.setProperty('--accent-dark', dark);
+      document.getElementById('themeToggle').style.background = hex;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color.toLowerCase() === hex.toLowerCase()));
+      if (save) { try { localStorage.setItem(THEME_KEY, hex); } catch (e) {} }
+    }
+    function initTheme() {
+      const row = document.getElementById('swatchRow');
+      PRESET_COLORS.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'swatch'; el.style.background = c; el.dataset.color = c;
+        el.title = c;
+        el.onclick = () => applyAccent(c, true);
+        row.appendChild(el);
+      });
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+      applyAccent(saved || PRESET_COLORS[0], false);
+      document.getElementById('customColorInput').addEventListener('input', e => applyAccent(e.target.value, true));
+
+      const toggle = document.getElementById('themeToggle');
+      const panel = document.getElementById('themePanel');
+      toggle.onclick = () => panel.classList.toggle('open');
+      document.addEventListener('click', e => {
+        if (!panel.contains(e.target) && e.target !== toggle) panel.classList.remove('open');
+      });
+    }
+
+    // ===================== APP LOGIC =====================
+    const DRA_LOGO_URL = '';
+    let currentEmail = '';
+    let currentTrip = null;
+    let myTrips = [];
+    let pollTimer = null;
+    const OTP_LENGTH = 6;
+
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const dashboardScreen = document.getElementById('dashboardScreen');
+    const dashboardContent = document.getElementById('dashboardContent');
+
+    function escapeHtml(str) { const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+    function fmt(n) { const s=n<0?'-':''; return s+'₹ '+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function formatDate(iso) { if (!iso) return ''; const [y,m,d]=iso.split('-'); const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${parseInt(d,10)} ${names[parseInt(m,10)-1]} ${y}`; }
+    function computeBalances(members, expenses) { const balances={}; members.forEach(m=>balances[m.name]=0); expenses.forEach(e=>{const share=e.amount/e.splitAmong.length; balances[e.paidBy]=(balances[e.paidBy]||0)+e.amount; e.splitAmong.forEach(n=>{balances[n]=(balances[n]||0)-share;});}); Object.keys(balances).forEach(k=>balances[k]=Math.round(balances[k]*100)/100); return members.map(m=>({name:m.name, balance:balances[m.name]||0})); }
+    function simplifyDebts(balances) { const eps=0.01; const creditors=balances.filter(b=>b.balance>eps).map(b=>({name:b.name,amt:b.balance})).sort((a,b)=>b.amt-a.amt); const debtors=balances.filter(b=>b.balance<-eps).map(b=>({name:b.name,amt:-b.balance})).sort((a,b)=>b.amt-a.amt); const txns=[]; let i=0,j=0; while(i<debtors.length&&j<creditors.length){const pay=Math.min(debtors[i].amt,creditors[j].amt); txns.push({from:debtors[i].name,to:creditors[j].name,amount:Math.round(pay*100)/100}); debtors[i].amt-=pay; creditors[j].amt-=pay; if(debtors[i].amt<eps)i++; if(creditors[j].amt<eps)j++;} return txns; }
+    function showMessage(el,text,type='error'){ if(!el)return; el.textContent=text; el.className='form-msg '+type; }
+    function clearMessage(el){ if(!el)return; el.textContent=''; el.className='form-msg'; }
+
+    // ---------------------------------------------------------
+    // Segmented, colour-coded, self-managing OTP input.
+    // Builds 6 boxes (one per OTP_BOX_COLORS entry), and wires up:
+    //  - typing a digit auto-advances to the next box
+    //  - backspace on an empty box auto-moves back a box
+    //  - pasting a 6-digit code fills every box at once
+    //  - the moment box 6 is filled, it auto-verifies (no button needed)
+    //  - shows a spinner while checking, then a green check or a shake+red on failure
+    // ---------------------------------------------------------
+    function buildOtpBoxes() {
+      const wrap = document.getElementById('otpBoxes');
+      wrap.innerHTML = '';
+      for (let i = 0; i < OTP_LENGTH; i++) {
+        const box = document.createElement('input');
+        box.type = 'tel';
+        box.inputMode = 'numeric';
+        box.maxLength = 1;
+        box.autocomplete = i === 0 ? 'one-time-code' : 'off';
+        box.className = 'otp-box mono';
+        box.style.setProperty('--box-color', OTP_BOX_COLORS[i % OTP_BOX_COLORS.length]);
+        box.dataset.index = i;
+        wrap.appendChild(box);
+      }
+      wireOtpBoxes();
+    }
+
+    function getOtpBoxes() { return Array.from(document.querySelectorAll('.otp-box')); }
+
+    // Builds the 12 radiating ticks + double ping ring once. Called lazily the
+    // first time it's needed, then just re-triggered (see playVerifiedRing).
+    function renderVerifiedRing() {
+      const ring = document.getElementById('otpRing');
+      if (ring.dataset.built) return;
+      let html = '<div class="otp-ring-ping"></div><div class="otp-ring-ping ping2"></div>';
+      for (let i = 0; i < 12; i++) {
+        html += `<div class="otp-tick-slot" style="transform:translate(-50%,-50%) rotate(${i * 30}deg)">
+                   <div class="otp-tick" style="animation-delay:${0.5 + i * 0.025}s"></div>
+                 </div>`;
+      }
+      html += '<div class="otp-ring-core">✓</div>';
+      ring.innerHTML = html;
+      ring.dataset.built = '1';
+    }
+
+    function playVerifiedRing() {
+      renderVerifiedRing();
+      const wrap = document.getElementById('otpVerifiedWrap');
+      const ring = document.getElementById('otpRing');
+      // Restart CSS animations even on a repeat verification attempt.
+      const clone = ring.cloneNode(true);
+      ring.parentNode.replaceChild(clone, ring);
+      clone.id = 'otpRing';
+      wrap.style.display = 'flex';
+    }
+
+    function hideVerifiedRing() {
+      document.getElementById('otpVerifiedWrap').style.display = 'none';
+    }
+
+    function setOtpStatus(text, mode) {
+      const el = document.getElementById('otpStatus');
+      hideVerifiedRing();
+      if (mode === 'verified') {
+        el.className = 'otp-status';
+        el.textContent = '';
+        playVerifiedRing();
+        return;
+      }
+      el.className = 'otp-status' + (mode ? ' ' + mode : '');
+      if (mode === 'verifying') {
+        el.innerHTML = '<span class="otp-spinner"></span><span>' + text + '</span>';
+      } else {
+        el.textContent = text || '';
+      }
+    }
+
+    function wireOtpBoxes() {
+      const boxes = getOtpBoxes();
+
+      boxes.forEach((box, idx) => {
+        box.addEventListener('input', () => {
+          box.value = box.value.replace(/[^0-9]/g, '').slice(-1);
+          if (box.value) {
+            box.classList.add('filled');
+            const next = boxes[idx + 1];
+            if (next) { next.focus(); next.select(); }
+            else { box.blur(); maybeAutoVerify(); }
+          } else {
+            box.classList.remove('filled');
+          }
+        });
+
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && idx > 0) {
+            const prev = boxes[idx - 1];
+            prev.focus(); prev.value = ''; prev.classList.remove('filled');
+            e.preventDefault();
+          }
+          if (e.key === 'ArrowLeft' && idx > 0) { boxes[idx - 1].focus(); e.preventDefault(); }
+          if (e.key === 'ArrowRight' && idx < boxes.length - 1) { boxes[idx + 1].focus(); e.preventDefault(); }
+        });
+
+        box.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+          if (!text) return;
+          fillOtpBoxes(text);
+        });
+
+        box.addEventListener('focus', () => box.select());
+      });
+
+      if (boxes[0]) boxes[0].focus();
+    }
+
+    function fillOtpBoxes(digits) {
+      const boxes = getOtpBoxes();
+      boxes.forEach((box, i) => {
+        box.value = digits[i] || '';
+        box.classList.toggle('filled', !!box.value);
+      });
+      const lastFilled = boxes.reduce((acc, b, i) => b.value ? i : acc, -1);
+      const focusTarget = boxes[Math.min(lastFilled + 1, boxes.length - 1)];
+      if (focusTarget) focusTarget.focus();
+      maybeAutoVerify();
+    }
+
+    function readOtpValue() { return getOtpBoxes().map(b => b.value).join(''); }
+
+    function shakeOtpBoxes() {
+      const boxes = getOtpBoxes();
+      boxes.forEach(b => {
+        b.classList.add('shake');
+        setTimeout(() => b.classList.remove('shake'), 320);
+      });
+    }
+
+    function resetOtpBoxes() {
+      getOtpBoxes().forEach(b => { b.value = ''; b.classList.remove('filled', 'shake'); b.disabled = false; });
+      setOtpStatus('', '');
+      const first = getOtpBoxes()[0];
+      if (first) first.focus();
+    }
+
+    function maybeAutoVerify() {
+      const code = readOtpValue();
+      if (code.length !== OTP_LENGTH) return;
+      getOtpBoxes().forEach(b => b.disabled = true);
+      setOtpStatus('Verifying…', 'verifying');
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!result.success) {
+            getOtpBoxes().forEach(b => b.disabled = false);
+            shakeOtpBoxes();
+            setOtpStatus(result.message || 'Invalid OTP.', 'failed');
+            return;
+          }
+          setOtpStatus('Verified & Secured', 'verified');
+          // Remember this login on this device — no expiry, no timers.
+          // Only "Sign out" (below) clears it, so refreshing or returning
+          // via a shared trip link never asks for the OTP again.
+          try { localStorage.setItem(SESSION_KEY, currentEmail); } catch (e) {}
+          setTimeout(loadTrips, 1250);
+        })
+        .withFailureHandler(function(err) {
+          getOtpBoxes().forEach(b => b.disabled = false);
+          shakeOtpBoxes();
+          setOtpStatus('Network error: ' + err.message, 'failed');
+        })
+        .verifyOTP(currentEmail, code);
+    }
+
+    function wireLoginEvents() {
+      const emailInput = document.getElementById('emailInput');
+      const sendOtpBtn = document.getElementById('sendOtpBtn');
+      const mobileMsg = document.getElementById('mobileMsg');
+      const stepMobile = document.getElementById('stepMobile');
+      const stepOtp = document.getElementById('stepOtp');
+      const backToMobile = document.getElementById('backToMobile');
+      const resendOtpBtn = document.getElementById('resendOtpBtn');
+      const otpMsg = document.getElementById('otpMsg');
+
+      function sendOTP() {
+        const email = emailInput.value.trim();
+        if (!email || !email.includes('@')) { showMessage(mobileMsg, 'Enter a valid email address.', 'error'); return; }
+        clearMessage(mobileMsg);
+        sendOtpBtn.disabled = true; sendOtpBtn.textContent = 'Sending...';
+        google.script.run
+          .withSuccessHandler(function(result) {
+            sendOtpBtn.disabled = false; sendOtpBtn.textContent = 'Send OTP';
+            if (!result.success) { showMessage(mobileMsg, result.message || 'Failed to send OTP.', 'error'); return; }
+            currentEmail = email;
+            stepMobile.style.display = 'none'; stepOtp.style.display = 'block';
+            buildOtpBoxes();
+            clearMessage(otpMsg);
+          })
+          .withFailureHandler(function(err) {
+            sendOtpBtn.disabled = false; sendOtpBtn.textContent = 'Send OTP';
+            showMessage(mobileMsg, 'Network error: ' + err.message, 'error');
+          })
+          .generateOTP(email);
+      }
+
+      sendOtpBtn.onclick = sendOTP;
+
+      backToMobile.onclick = function() {
+        stepOtp.style.display = 'none'; stepMobile.style.display = 'block';
+        clearMessage(otpMsg); clearMessage(mobileMsg);
+        emailInput.focus();
+      };
+
+      resendOtpBtn.onclick = function() {
+        resetOtpBoxes();
+        sendOTP();
+      };
+
+      emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendOTP(); });
+    }
+
+    function loadTrips() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!result.success) { showMessage(document.getElementById('mobileMsg'), result.message, 'error'); return; }
+          myTrips = result.data?.trips || [];
+          showDashboard();
+        })
+        .withFailureHandler(function(err) {
+          showMessage(document.getElementById('mobileMsg'), 'Network error: ' + err.message, 'error');
+        })
+        .listTrips(currentEmail);
+    }
+
+    function showDashboard() {
+      welcomeScreen.style.display = 'none';
+      dashboardScreen.style.display = 'block';
+      renderTripList();
+    }
+
+    function renderTripList() {
+      let infoDismissed = false;
+      try { infoDismissed = localStorage.getItem('tripledger-info-dismissed') === '1'; } catch (e) {}
+
+      const html = `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:26px;">
+          <div>
+            <div class="display" style="font-weight:800;font-size:26px;">Trip<span style="color:var(--accent-dark);">ledger</span></div>
+            <div style="font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);">BY DRA</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:14px;color:var(--muted);">${escapeHtml(currentEmail)}</span>
+            <button class="btn-ghost" id="signOutBtn">Sign out</button>
+          </div>
+        </div>
+
+        <div class="info-notice sticker-card ${infoDismissed ? 'info-collapsed' : ''}" id="infoNotice">
+          <div class="info-notice-head" id="infoNoticeHead">
+            <span class="display" style="font-weight:700;font-size:17px;">Welcome to Tripledger ✨</span>
+            <button id="toggleInfoBtn" class="btn-text" style="text-decoration:none;">${infoDismissed ? 'Show tips ▾' : 'Hide ▴'}</button>
+          </div>
+          <div class="info-grid" id="infoGrid">
+            <div class="info-card tilt-card">
+              <div class="info-emoji">📖</div>
+              <div class="info-title">How to use</div>
+              <div class="info-text">Start a trip or join one with a code, add your friends, and log expenses as you spend. Tripledger works out who owes what — automatically.</div>
+            </div>
+            <div class="info-card tilt-card">
+              <div class="info-emoji">👨‍💻</div>
+              <div class="info-title">Who made this</div>
+              <div class="info-text">Crafted with care by <b>Divyam Rajan Agrawal</b> — a simple, honest tool for splitting trip costs fairly, made for friends and family.</div>
+            </div>
+            <div class="info-card tilt-card">
+              <div class="info-emoji">💡</div>
+              <div class="info-title">What it solves</div>
+              <div class="info-text">No more mental maths, screenshots, or forgotten IOUs. One shared ledger everyone can see, updated the moment an expense is added.</div>
+            </div>
+            <div class="info-card tilt-card">
+              <div class="info-emoji">🧠</div>
+              <div class="info-title">Your group's shared brain</div>
+              <div class="info-text">Tripledger never moves real money — it's just the calculator. It remembers every rupee spent, works out the fewest payments needed, and shows the exact same numbers to every member, instantly and honestly.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h1 class="display" style="font-weight:700;font-size:26px;margin:16px 0 4px;">Your trips 🧳</h1>
+            <p style="color:var(--muted);">Pick up where you left off, or start a new one.</p>
+          </div>
+          <button class="btn-ghost" id="refreshTripsBtn" style="margin-bottom:8px;">↻ Refresh</button>
+        </div>
+        <div style="margin-bottom:22px;"></div>
+        <div id="tripsList" style="margin-bottom:32px;"></div>
+        <div style="max-width:440px;">
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="tab-btn active" id="tabStart">✨ Start a trip</button>
+            <button class="tab-btn" id="tabJoin">🔑 Join a trip</button>
+          </div>
+          <div id="tabContent"></div>
+          <div id="tabError" style="margin-top:8px;color:var(--coral);font-size:13px;font-weight:600;"></div>
+        </div>
+      `;
+      dashboardContent.innerHTML = html;
+
+      const tripsList = document.getElementById('tripsList');
+      if (myTrips.length === 0) {
+        tripsList.innerHTML = '<div style="color:var(--muted);font-size:14px;">No trips yet — start one or join with a code. 🎉</div>';
+      } else {
+        let h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">';
+        myTrips.forEach(t => {
+          h += `
+            <div class="trip-card sticker-card tilt-card" data-code="${t.code}">
+              <div class="display" style="font-weight:700;font-size:18px;">${escapeHtml(t.name)}</div>
+              <div class="code-pill" style="margin-top:6px;">${t.code}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:8px;">${t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</div>
+            </div>
+          `;
+        });
+        h += '</div>';
+        tripsList.innerHTML = h;
+        tripsList.querySelectorAll('.trip-card').forEach(el => { el.onclick = () => openTrip(el.dataset.code); });
+      }
+
+      const tabStart = document.getElementById('tabStart');
+      const tabJoin = document.getElementById('tabJoin');
+      const tabContent = document.getElementById('tabContent');
+      const tabError = document.getElementById('tabError');
+
+      function setTab(tab) {
+        tabStart.classList.toggle('active', tab === 'start');
+        tabJoin.classList.toggle('active', tab === 'join');
+        renderTabContent(tab);
+      }
+
+      function renderTabContent(tab) {
+        tabError.textContent = '';
+        if (tab === 'start') {
+          tabContent.innerHTML = `
+            <div class="panel">
+              <div class="panel-title">🆕 New trip</div>
+              <input type="text" id="newTripName" class="input" placeholder="e.g. Nainital Weekend" maxlength="40" style="margin-bottom:12px;">
+              <button class="btn-primary" id="createTripBtn" style="width:100%;">Create trip</button>
+            </div>
+          `;
+          document.getElementById('createTripBtn').onclick = function() {
+            const name = document.getElementById('newTripName').value.trim();
+            if (!name) { tabError.textContent = 'Enter a trip name.'; return; }
+            const btn = this;
+            btn.disabled = true; btn.textContent = 'Creating...';
+            google.script.run
+              .withSuccessHandler(function(result) {
+                btn.disabled = false; btn.textContent = 'Create trip';
+                if (!result.success) { tabError.textContent = result.message; return; }
+                loadTripsThenOpen(result.data.code);
+              })
+              .withFailureHandler(function(err) {
+                btn.disabled = false; btn.textContent = 'Create trip';
+                tabError.textContent = 'Network error: ' + err.message;
+              })
+              .createTrip(currentEmail, { name: name });
+          };
+          document.getElementById('newTripName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('createTripBtn').click(); });
+        } else {
+          tabContent.innerHTML = `
+            <div class="panel">
+              <div class="panel-title">🔑 Join a trip</div>
+              <input type="text" id="joinCodeInput" class="input mono" placeholder="Enter 6-character code" maxlength="6" style="text-transform:uppercase;margin-bottom:12px;">
+              <input type="text" id="joinNameInput" class="input" placeholder="Your name" maxlength="24" style="margin-bottom:12px;">
+              <button class="btn-primary" id="joinTripBtn" style="width:100%;">Join trip</button>
+            </div>
+          `;
+          document.getElementById('joinTripBtn').onclick = function() {
+            const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+            const memberName = document.getElementById('joinNameInput').value.trim();
+            if (!code || code.length < 4) { tabError.textContent = 'Enter a valid trip code.'; return; }
+            if (!memberName) { tabError.textContent = 'Enter your name.'; return; }
+            const btn = this;
+            btn.disabled = true; btn.textContent = 'Joining...';
+            google.script.run
+              .withSuccessHandler(function(result) {
+                btn.disabled = false; btn.textContent = 'Join trip';
+                if (!result.success) { tabError.textContent = result.message; return; }
+                loadTripsThenOpen(code);
+              })
+              .withFailureHandler(function(err) {
+                btn.disabled = false; btn.textContent = 'Join trip';
+                tabError.textContent = 'Network error: ' + err.message;
+              })
+              .joinTrip(currentEmail, code, memberName);
+          };
+          document.getElementById('joinCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('joinTripBtn').click(); });
+        }
+      }
+
+      tabStart.onclick = () => setTab('start');
+      tabJoin.onclick = () => setTab('join');
+      setTab('start');
+
+      document.getElementById('signOutBtn').onclick = function() {
+        // This is the ONLY place the remembered session is cleared.
+        try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+        currentEmail = ''; myTrips = [];
+        dashboardScreen.style.display = 'none';
+        welcomeScreen.style.display = 'flex';
+        document.getElementById('stepMobile').style.display = 'block';
+        document.getElementById('stepOtp').style.display = 'none';
+        document.getElementById('emailInput').value = '';
+        clearMessage(document.getElementById('mobileMsg'));
+      };
+
+      document.getElementById('refreshTripsBtn').onclick = function() {
+        playRefreshBurst(this);
+        loadTrips();
+      };
+
+      const infoNotice = document.getElementById('infoNotice');
+      document.getElementById('toggleInfoBtn').onclick = function() {
+        const collapsed = infoNotice.classList.toggle('info-collapsed');
+        this.textContent = collapsed ? 'Show tips ▾' : 'Hide ▴';
+        try { localStorage.setItem('tripledger-info-dismissed', collapsed ? '1' : '0'); } catch (e) {}
+        if (!collapsed) { attachTilt(infoNotice); staggerCardIn(infoNotice, '.info-card'); }
+      };
+
+      attachTilt(dashboardContent);
+      staggerCardIn(dashboardContent, '.trip-card, .panel, .info-card');
+    }
+
+    function loadTripsThenOpen(code) {
+      google.script.run
+        .withSuccessHandler(function(result) { myTrips = result.success ? (result.data?.trips || []) : myTrips; openTrip(code); })
+        .withFailureHandler(function() { openTrip(code); })
+        .listTrips(currentEmail);
+    }
+
+    function openTrip(code) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!result.success) { renderTripList(); return; }
+          currentTrip = { code, data: result.data };
+          renderTripDashboard();
+        })
+        .withFailureHandler(function() { renderTripList(); })
+        .getTrip(currentEmail, code);
+    }
+
+    function renderTripDashboard() {
+      const trip = currentTrip.data;
+      const members = trip.members || [];
+      const expenses = trip.expenses || [];
+      const code = currentTrip.code;
+
+      const balances = computeBalances(members, expenses);
+      const debts = simplifyDebts(balances);
+      const currentMember = members.find(m => m.email === currentEmail);
+      const currentName = currentMember ? currentMember.name : (members[0]?.name || '');
+
+      const html = `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="display" style="font-weight:800;font-size:24px;">${escapeHtml(trip.name)}</span>
+            <span class="code-pill">${code}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:14px;color:var(--muted);">${escapeHtml(currentEmail)}</span>
+            <button class="btn-ghost" id="backToTripsBtn">←  Trips</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;">
+          <div class="panel stat-card tilt-card"><div class="panel-title" style="justify-content:center;">💸 Total spent</div><div class="stat-value mono">${fmt(expenses.reduce((s, e) => s + e.amount, 0))}</div></div>
+          <div class="panel stat-card tilt-card"><div class="panel-title" style="justify-content:center;">👥 Members</div><div class="stat-value mono">${members.length}</div></div>
+          <div class="panel stat-card tilt-card"><div class="panel-title" style="justify-content:center;">🧾 Expenses</div><div class="stat-value mono">${expenses.length}</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="panel tilt-card" style="margin-bottom:20px;">
+              <div class="panel-title">👥 Members</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;" id="membersList">
+                ${members.map(m => `
+                  <span class="chip readonly">${escapeHtml(m.name)}${m.email === currentEmail ? ' <span class="you-badge">YOU</span>' : ''}${!m.email ? ' <span style="font-size:10px;color:var(--muted);">· placeholder</span>' : ''}</span>
+                `).join('')}
+              </div>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="newMemberName" class="input" placeholder="Add placeholder member" maxlength="24" style="flex:1;">
+                <button class="btn-primary" id="addMemberBtn">Add</button>
+              </div>
+              <div id="memberMsg" style="margin-top:6px;font-size:13px;color:var(--coral);font-weight:600;"></div>
+            </div>
+
+            <div class="panel tilt-card" style="margin-bottom:20px;">
+              <div class="panel-title">➕ Add an expense</div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <input type="text" id="expDesc" class="input" placeholder="What was it? (e.g. Dinner)" maxlength="60">
+                <div style="display:flex;gap:8px;">
+                  <input type="number" id="expAmount" class="input mono" placeholder="₹  Amount" step="0.01" min="0" style="flex:1;">
+                  <input type="date" id="expDate" class="input" value="${new Date().toISOString().slice(0, 10)}" style="flex:1;">
+                </div>
+                <div>
+                  <label style="font-size:13px;color:var(--muted);font-weight:500;">Paid by</label>
+                  <select id="expPaidBy" class="select">
+                    ${members.map(m => `<option value="${escapeHtml(m.name)}" ${m.name === currentName ? 'selected' : ''}>${escapeHtml(m.name)}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:13px;color:var(--muted);font-weight:500;">Split among</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="splitChips">
+                    ${members.map(m => `<span class="chip selected" data-name="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>`).join('')}
+                  </div>
+                </div>
+                <button class="btn-primary" id="addExpenseBtn">Add expense</button>
+                <div id="expenseMsg" class="form-msg"></div>
+              </div>
+            </div>
+
+            <div class="panel tilt-card">
+              <div class="panel-title">📒 Ledger</div>
+              ${expenses.length === 0 ? '<div style="color:var(--muted);">No expenses yet.</div>' : `
+                <ul style="list-style:none;padding:0;margin:0;">
+                  ${[...expenses].reverse().map(e => `
+                    <li style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);">
+                      <div>
+                        <div style="font-weight:600;">${escapeHtml(e.description)}</div>
+                        <div style="font-size:12px;color:var(--muted);">${formatDate(e.date)} · paid by ${escapeHtml(e.paidBy)} · split ${e.splitAmong.length} ways</div>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="mono" style="color:var(--accent-dark);font-weight:600;">${fmt(e.amount)}</span>
+                        <button class="delete-expense" data-id="${e.id}" style="background:none;border:none;color:var(--coral);cursor:pointer;font-size:18px;line-height:1;">✖</button>
+                      </div>
+                    </li>
+                  `).join('')}
+                </ul>
+              `}
+            </div>
+          </div>
+
+          <div>
+            <div class="panel tilt-card" style="margin-bottom:20px;">
+              <div class="panel-title">⚖️ Balances</div>
+              <ul style="list-style:none;padding:0;margin:0;">
+                ${balances.map(b => {
+                  const isMe = b.name === currentName;
+                  const status = b.balance > 0.01 ? 'gets back' : (b.balance < -0.01 ? 'owes' : 'settled');
+                  const color = b.balance > 0.01 ? '#1F9C6B' : (b.balance < -0.01 ? 'var(--coral)' : 'var(--muted)');
+                  return `
+                    <li style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);">
+                      <span>${escapeHtml(b.name)}${isMe ? ' <span class="you-badge">YOU</span>' : ''}</span>
+                      <span class="mono" style="font-weight:600;color:${color};">${status} ${fmt(Math.abs(b.balance))}</span>
+                    </li>
+                  `;
+                }).join('')}
+              </ul>
+            </div>
+
+            <div style="margin-bottom:20px;">
+              <div class="receipt tilt-card">
+                <div class="panel-title">🧮 Settle up</div>
+                ${debts.length === 0 ? '<div style="color:var(--muted);">Everyone is settled — no payments needed. 🎉</div>' : `
+                  <ul style="list-style:none;padding:0;margin:0;">
+                    ${debts.map(d => `
+                      <li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px;">
+                        <span>${escapeHtml(d.from)} <span style="color:var(--muted);">→</span> ${escapeHtml(d.to)}</span>
+                        <span class="mono" style="font-weight:700;">${fmt(d.amount)}</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                `}
+              </div>
+              <div class="receipt-zigzag"></div>
+            </div>
+
+            <div class="panel tilt-card">
+              <div class="panel-title">📤 Export report</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <select id="reportMode" class="select">
+                  <option value="whole">Whole trip</option>
+                  <option value="daily">Day by day</option>
+                  <option value="person">One person</option>
+                </select>
+                <select id="reportPerson" class="select" style="display:none;">
+                  ${members.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('')}
+                </select>
+                <button class="btn-primary" id="exportPdfBtn">Export as PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:12px;">
+          <div class="sync-status-live"><span class="sync-dot manual"></span> Manual sync — nothing refreshes while you're typing. <button id="refreshBtn" class="btn-text">↻ Refresh now</button></div>
+          <button class="btn-ghost" id="leaveTripBtn">Back to your trips</button>
+        </div>
+      `;
+
+      dashboardContent.innerHTML = html;
+
+      document.getElementById('backToTripsBtn').onclick = () => { currentTrip = null; renderTripList(); };
+      document.getElementById('leaveTripBtn').onclick = () => { currentTrip = null; renderTripList(); };
+
+      document.getElementById('addMemberBtn').onclick = function() {
+        const name = document.getElementById('newMemberName').value.trim();
+        if (!name) { document.getElementById('memberMsg').textContent = 'Enter a name.'; return; }
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result.success) { document.getElementById('memberMsg').textContent = result.message; return; }
+            openTrip(code);
+          })
+          .withFailureHandler(function(err) { document.getElementById('memberMsg').textContent = 'Network error: ' + err.message; })
+          .addMember(currentEmail, code, name);
+      };
+
+      document.querySelectorAll('#splitChips .chip').forEach(chip => { chip.onclick = function() { this.classList.toggle('selected'); }; });
+
+      document.getElementById('addExpenseBtn').onclick = function() {
+        const desc = document.getElementById('expDesc').value.trim();
+        const amount = parseFloat(document.getElementById('expAmount').value);
+        const date = document.getElementById('expDate').value;
+        const paidBy = document.getElementById('expPaidBy').value;
+        const splitAmong = Array.from(document.querySelectorAll('#splitChips .chip.selected')).map(el => el.dataset.name);
+        const msgEl = document.getElementById('expenseMsg');
+
+        if (!desc || !amount || amount <= 0 || splitAmong.length === 0 || !paidBy) {
+          showMessage(msgEl, 'Fill all fields and select at least one split.', 'error');
+          return;
+        }
+        const expense = { description: desc, amount, date, paidBy, splitAmong };
+        const btn = this;
+        btn.disabled = true; btn.textContent = 'Saving...';
+        google.script.run
+          .withSuccessHandler(function(result) {
+            btn.disabled = false; btn.textContent = 'Add expense';
+            if (!result.success) { showMessage(msgEl, result.message, 'error'); return; }
+            showMessage(msgEl, 'Expense added! 🎉', 'success');
+            openTrip(code);
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false; btn.textContent = 'Add expense';
+            showMessage(msgEl, 'Network error: ' + err.message, 'error');
+          })
+          .addExpense(currentEmail, code, expense);
+      };
+
+      document.querySelectorAll('.delete-expense').forEach(btn => {
+        btn.onclick = function() {
+          const expenseId = this.dataset.id;
+          if (!confirm('Delete this expense?')) return;
+          google.script.run
+            .withSuccessHandler(function(result) { if (result.success) { openTrip(code); } else { alert(result.message); } })
+            .withFailureHandler(function(err) { alert('Network error: ' + err.message); })
+            .deleteExpense(currentEmail, code, expenseId);
+        };
+      });
+
+      document.getElementById('exportPdfBtn').onclick = function() {
+        const mode = document.getElementById('reportMode').value;
+        const person = document.getElementById('reportPerson').value;
+        const printHtml = buildPrintHtml(trip, mode, person);
+        document.getElementById('printArea').innerHTML = printHtml;
+        setTimeout(() => window.print(), 100);
+      };
+
+      document.getElementById('reportMode').onchange = function() {
+        document.getElementById('reportPerson').style.display = this.value === 'person' ? 'inline-block' : 'none';
+      };
+
+      document.getElementById('refreshBtn').onclick = function() {
+        playRefreshBurst(this);
+        openTrip(code);
+      };
+
+      attachTilt(dashboardContent);
+      staggerCardIn(dashboardContent, '.panel, .stat-card, .receipt');
+    }
+
+    function buildPrintHtml(trip, mode, personName) {
+      const members = trip.members || [];
+      const expenses = trip.expenses || [];
+      const balances = computeBalances(members, expenses);
+      const debts = simplifyDebts(balances);
+      const total = expenses.reduce((s, e) => s + e.amount, 0);
+
+      let content = `
+        <div class="print-header">
+          <div>
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:22px;">Tripledger <span style="color:#8B6BFF;">report</span></div>
+            <div style="font-size:11px;letter-spacing:0.3em;color:#777;">BY DRA</div>
+          </div>
+          <div style="text-align:right;font-size:12px;color:#555;">
+            <div><b>${escapeHtml(trip.name)}</b> · <span style="font-family:'IBM Plex Mono',monospace;">${escapeHtml(trip.code)}</span></div>
+            <div>${mode === 'whole' ? 'Whole trip' : mode === 'daily' ? 'Day by day' : 'Per person: '+escapeHtml(personName)}</div>
+            <div>${expenses.length} expense${expenses.length===1?'':'s'} · Total ${fmt(total)}</div>
+          </div>
+        </div>
+      `;
+
+      if (mode === 'whole' || mode === 'daily') {
+        if (mode === 'whole') {
+          content += `<div class="print-section-title">All expenses</div>
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Paid by</th><th>Split among</th><th style="text-align:right;">Amount</th></tr></thead>
+              <tbody>
+                ${[...expenses].sort((a,b) => a.date > b.date ? 1 : -1).map(e => `
+                  <tr>
+                    <td>${formatDate(e.date)}</td>
+                    <td>${escapeHtml(e.description)}</td>
+                    <td>${escapeHtml(e.paidBy)}</td>
+                    <td>${(e.splitAmong || []).join(', ')}</td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(e.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        } else {
+          const byDate = {};
+          expenses.forEach(e => { if (!byDate[e.date]) byDate[e.date] = []; byDate[e.date].push(e); });
+          const dates = Object.keys(byDate).sort();
+          dates.forEach(date => {
+            const items = byDate[date];
+            const sub = items.reduce((s, e) => s + e.amount, 0);
+            content += `<div class="print-section-title">${formatDate(date)} · ${fmt(sub)}</div>
+              <table>
+                <thead><tr><th>Description</th><th>Paid by</th><th>Split among</th><th style="text-align:right;">Amount</th></tr></thead>
+                <tbody>
+                  ${items.map(e => `
+                    <tr>
+                      <td>${escapeHtml(e.description)}</td>
+                      <td>${escapeHtml(e.paidBy)}</td>
+                      <td>${(e.splitAmong || []).join(', ')}</td>
+                      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(e.amount)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+          });
+        }
+
+        content += `<div class="print-section-title">Balances</div>
+          <table>
+            <thead><tr><th>Member</th><th style="text-align:right;">Balance</th></tr></thead>
+            <tbody>
+              ${balances.map(b => `
+                <tr>
+                  <td>${escapeHtml(b.name)}</td>
+                  <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:${b.balance > 0.01 ? '#166' : b.balance < -0.01 ? '#a22' : '#555'};">${fmt(b.balance)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        content += `<div class="print-section-title">Settle up</div>
+          ${debts.length === 0 ? '<div style="color:#666;">Everyone is settled.</div>' : `
+            <table>
+              <thead><tr><th>From</th><th>To</th><th style="text-align:right;">Amount</th></tr></thead>
+              <tbody>
+                ${debts.map(d => `
+                  <tr>
+                    <td>${escapeHtml(d.from)}</td>
+                    <td>${escapeHtml(d.to)}</td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(d.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `}
+        `;
+      } else {
+        const person = personName;
+        const paidByThem = expenses.filter(e => e.paidBy === person);
+        const inSplit = expenses.filter(e => e.splitAmong.includes(person));
+        const totalPaid = paidByThem.reduce((s, e) => s + e.amount, 0);
+        const totalShare = inSplit.reduce((s, e) => { const parts = e.splitAmong.length || 1; return s + e.amount / parts; }, 0);
+        const bal = balances.find(b => b.name === person)?.balance || 0;
+        const netColor = bal > 0.01 ? '#166' : bal < -0.01 ? '#a22' : '#555';
+        const personDebts = debts.filter(d => d.from === person || d.to === person);
+
+        content += `<div class="print-section-title">Summary for ${escapeHtml(person)}</div>
+          <table>
+            <tbody>
+              <tr><td>Total paid</td><td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(totalPaid)}</td></tr>
+              <tr><td>Total share of splits</td><td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(totalShare)}</td></tr>
+              <tr><td><b>Net balance</b></td><td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:${netColor};font-weight:700;">${fmt(bal)}</td></tr>
+            </tbody>
+          </table>
+        `;
+
+        content += `<div class="print-section-title">Expenses ${escapeHtml(person)} paid for</div>
+          ${paidByThem.length === 0 ? '<div style="color:#666;">None.</div>' : `
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Split among</th><th style="text-align:right;">Amount</th></tr></thead>
+              <tbody>
+                ${paidByThem.map(e => `
+                  <tr>
+                    <td>${formatDate(e.date)}</td>
+                    <td>${escapeHtml(e.description)}</td>
+                    <td>${(e.splitAmong || []).join(', ')}</td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(e.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `}
+        `;
+
+        content += `<div class="print-section-title">Expenses ${escapeHtml(person)} was part of</div>
+          ${inSplit.length === 0 ? '<div style="color:#666;">None.</div>' : `
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Paid by</th><th style="text-align:right;">Total bill</th><th style="text-align:right;">Their share</th></tr></thead>
+              <tbody>
+                ${inSplit.map(e => {
+                  const parts = e.splitAmong.length || 1;
+                  return `
+                    <tr>
+                      <td>${formatDate(e.date)}</td>
+                      <td>${escapeHtml(e.description)}</td>
+                      <td>${escapeHtml(e.paidBy)}</td>
+                      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(e.amount)}</td>
+                      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(e.amount / parts)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          `}
+        `;
+
+        content += `<div class="print-section-title">Settlements involving ${escapeHtml(person)}</div>
+          ${personDebts.length === 0 ? '<div style="color:#666;">No payments needed.</div>' : `
+            <table>
+              <thead><tr><th>From</th><th>To</th><th style="text-align:right;">Amount</th></tr></thead>
+              <tbody>
+                ${personDebts.map(d => `
+                  <tr>
+                    <td>${escapeHtml(d.from)}</td>
+                    <td>${escapeHtml(d.to)}</td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmt(d.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `}
+        `;
+      }
+
+      content += `<div class="print-footer">Generated on ${new Date().toLocaleString('en-IN')} · Tripledger by DRA</div>`;
+      return content;
+    }
+
+    // Auto-polling has been removed on purpose: it used to wipe out
+    // whatever someone was mid-typing into a form every 8 seconds.
+    // Sync now happens only when the person explicitly taps "Refresh".
+    // These two stay as harmless no-ops so any leftover calls elsewhere
+    // never throw, but nothing runs on a timer anymore.
+    function startPolling() { /* intentionally no-op — manual refresh only */ }
+    function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+    // ---------------------------------------------------------
+    // 8D tilt engine — attaches a perspective tilt + glare sheen to
+    // any element with .tilt-card inside `root`, driven purely by
+    // real mouse/touch movement (no automatic motion, no timers).
+    // ---------------------------------------------------------
+    function attachTilt(root) {
+      const cards = (root || document).querySelectorAll('.tilt-card');
+      cards.forEach(card => {
+        if (card.dataset.tiltWired) return;
+        card.dataset.tiltWired = '1';
+        if (!card.querySelector('.tilt-glare')) {
+          const glare = document.createElement('div');
+          glare.className = 'tilt-glare';
+          card.appendChild(glare);
+        }
+        const strength = 7;
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const px = (e.clientX - rect.left) / rect.width;
+          const py = (e.clientY - rect.top) / rect.height;
+          const rotY = (px - 0.5) * strength * 2;
+          const rotX = (0.5 - py) * strength * 2;
+          card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(6px)`;
+          card.style.setProperty('--glare-x', (px * 100) + '%');
+          card.style.setProperty('--glare-y', (py * 100) + '%');
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = '';
+        });
+      });
+    }
+
+    // Stamps a staggered 3D "pop-in" onto freshly-rendered cards.
+    function staggerCardIn(root, selector) {
+      const els = (root || document).querySelectorAll(selector);
+      els.forEach((el, i) => {
+        el.classList.remove('card-in');
+        void el.offsetWidth; // restart animation
+        el.style.animationDelay = (i * 0.06) + 's';
+        el.classList.add('card-in');
+      });
+    }
+
+    // Plays a little tri-colour ripple + icon spin on a refresh button —
+    // purely a click-triggered flourish, never fired automatically.
+    function playRefreshBurst(btn) {
+      if (!btn) return;
+      let wrap = btn.querySelector('.refresh-wrap');
+      if (!wrap) {
+        wrap = document.createElement('span');
+        wrap.className = 'refresh-wrap';
+        wrap.innerHTML = '<span class="refresh-icon">↻</span>';
+        btn.innerHTML = '';
+        btn.appendChild(wrap);
+        btn.appendChild(document.createTextNode(' Refresh now'));
+      }
+      const icon = wrap.querySelector('.refresh-icon');
+      icon.classList.remove('spin'); void icon.offsetWidth; icon.classList.add('spin');
+      ['', 'b2', 'b3'].forEach(cls => {
+        const burst = document.createElement('span');
+        burst.className = 'refresh-burst ' + cls;
+        wrap.appendChild(burst);
+        setTimeout(() => burst.remove(), 700);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+
+      function setDraLogo(source) { document.querySelectorAll('.logo-mark-img').forEach(function(img) { img.src = source; }); }
+      setDraLogo(DRA_LOGO_URL || 'dra-logo-transparent.png');
+      if (!DRA_LOGO_URL && typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(setDraLogo)
+          .withFailureHandler(function() { setDraLogo('dra-logo-transparent.png'); })
+          .getDraLogoDataUrl();
+      }
+
+      wireLoginEvents();
+      attachTilt(document);
+
+      // Persistent login check — if this browser already verified an email
+      // before (and hasn't signed out since), skip the OTP screen entirely
+      // and go straight to the dashboard. Works for reopening the app link
+      // and for opening a shared "join a trip" link on an already-signed-in device.
+      let savedEmail = null;
+      try { savedEmail = localStorage.getItem(SESSION_KEY); } catch (e) {}
+
+      if (savedEmail) {
+        currentEmail = savedEmail;
+        loadTrips();
+      } else {
+        const emailInput = document.getElementById('emailInput');
+        if (emailInput) emailInput.focus();
+      }
+
+      console.log('Tripledger by DRA — ready');
+    });
+  </script>
+</body>
+</html>
